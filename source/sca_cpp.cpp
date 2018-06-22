@@ -120,22 +120,21 @@ private:
 }; // issue 25 , line 120 : no user-provided copy constructor, no user-provided copy assignment operator
 
 
-
 class SimplyCreazy
 {
 public:
-    SimplyCreazy(): pZero(0) {}    // issue 26 , line 127 : Member variable 'SimplyCreazy::pNonIni' is not initialized in the constructor
+    SimplyCreazy(): pZero(0) {}    // issue 26 , line 126 : Member variable 'SimplyCreazy::pNonIni' is not initialized in the constructor
     
     void UnbrokenFor()
     {
-        int a[10]; // issue 27 , line 131 : Variable 'a' is not assigned a value.
+        int a[10]; // issue 27 , line 130 : Variable 'a' is not assigned a value.
         for(int64_t i=0; i <10; i++)
         {
-            if( i || !(42 < 0) )     // issue 28 , line 134 : no sense always true under if, 
+            if( i || !(42 < 0) )     // issue 28 , line 133 : no sense always true under if, 
             {
-                i--; // issue 29 , line 136 : circle counter! as result the circle is unbroken
-                cout << "a[i] = " << a[i] << endl;  // issue 30 , line 137 : access to non-init array, error 31: using signed index (size_t could be used)
-                                                    // issue 31 , line 138 : using array where vector could be used
+                i--; // issue 29 , line 135 : circle counter! as result the circle is unbroken
+                cout << "a[i] = " << a[i] << endl;  // issue 30 , line 136 : access to non-init array, error 31: using signed index (size_t could be used)
+                                                    // issue 31 , line 137 : using array where vector could be used
             }
         }
     }
@@ -143,16 +142,16 @@ public:
     void BadPointerOperation()
     {
         
-        strcpy(pZero,"Hello");         // issue 32 , line 146 : copy to zero point64_ter        
-        strcpy(pNonIni,"Hello");     // issue 33 , line 147 : copy to non-initialized point64_ter
-        *pZero++;                     // issue 34 , line 148 : non-using result of operation (* - no sense, unused), error 22: using nul point64_ter
+        strcpy(pZero,"Hello");         // issue 32 , line 145 : copy to zero point64_ter        
+        strcpy(pNonIni,"Hello");     // issue 33 , line 146 : copy to non-initialized point64_ter
+        *pZero++;                     // issue 34 , line 147 : non-using result of operation (* - no sense, unused), error 22: using nul point64_ter
         cout << "Creazy Point64_ters string: " << pZero << " " << pNonIni << endl; // error 22: using nul point64_ter
         return;
-        // issue 35 , line 151 : bad control flow: unreachable instruction
+        // issue 35 , line 150 : bad control flow: unreachable instruction
         cout << "never accessable output " << endl;
     }
     
-    void PassStringAsValue(string s) // issue 36 , line 155 : bad string transfer. Must be PassStringAsValue(const string& s)
+    void PassStringAsValue(string s) // issue 36 , line 154 : bad string transfer. Must be PassStringAsValue(const string& s)
     {
         cout << "Bad sending string example: " << s << endl; 
     }
@@ -162,10 +161,33 @@ private:
     char *pNonIni;
 };
 
+enum class Color {red, green, blue, magenta, yellow };
+
+void switchBreak(Color cl)
+{
+    cout << "Lost break example begin" << endl;
+    switch(cl)
+    {
+        case Color::red :
+            cout << "Color::red" << endl;
+            break;
+        case Color::green : 
+            cout << "Color::green. Ops! break is forgotten" << endl; // issue 37 , line 175 : missing break in the switch/case            
+        case Color::blue : 
+            cout << "Color::blue" << endl;
+        case Color::magenta :
+            [[gnu::fallthrow]]
+        case Color::yellow :
+            cout << "Color::yellow or Color::magenta" << endl;
+    }
+    cout << "Lost break example end" << endl;
+}
 
 int32_t  main (int32_t argc, const char* const argv[] ) 
 {
     cout << "=== Happy start of the program :) ===" << endl;
+    
+    switchBreak(Color::green);
 
     int64_t crashCode = 0;
     if ( argc > 1 )
@@ -175,37 +197,37 @@ int32_t  main (int32_t argc, const char* const argv[] )
 
     SimplyCreazy sc;
 
-    baseA *pB = new childB(); //  issue 37 , line 178 : cause many errors 
+    baseA *pB = new childB(); //  issue 38 , line 200 : cause many errors 
     cout << "Error:"<< pB->getstr() << endl; 
     delete pB;
 
     if (crashCode > 6)
     {
-        goto JUMP;         // issue 38 , line 184 : using goto
+        goto JUMP;         // issue 39 , line 206 : using goto
     }
 
     if (crashCode == 1 )
     {
         childB b1;
-        childB b2(b1);  // issue 39 , line 190 : demo error of absence of deep copying
-        b1 = b2;        // issue 40 , line 191 : demo error of absence of deep copying
+        childB b2(b1);  // issue 40 , line 212 : demo error of absence of deep copying
+        b1 = b2;        // issue 41 , line 213 : demo error of absence of deep copying
     }
 
     else if (crashCode == 2 )
     {
         cout << "Unbroken recursion is starting..." << endl;
         childB b1;
-        b1.rec();         // issue 41 , line 198 : recursion error
+        b1.rec();         // issue 42 , line 220 : recursion error
     }
 
     else if (crashCode == 3 )
     {
         cout << "Unbroken cross recursion is starting..." << endl;
         childB b1;
-        b1.recA();         //  issue 42 , line 205 : cross recursion error
+        b1.recA();         //  issue 43 , line 227 : cross recursion error
     }
 
-    else if (crashCode == 4 )     // issue 43 , line 208 :  division by zero
+    else if (crashCode == 4 )     // issue 44 , line 230 :  division by zero
     {
         cout << "Division by zero is starting..." << endl;
         int64_t c = childB::devZero() ;
@@ -214,20 +236,20 @@ int32_t  main (int32_t argc, const char* const argv[] )
 
     else if (crashCode == 5 )
     {
-        sc.UnbrokenFor();             // issue 44 , line 217 : if with always true condition and unbroken circle 
+        sc.UnbrokenFor();             // issue 45 , line 239 : if with always true condition and unbroken circle 
     }
         
     else if (crashCode == 6 )
     {
-        sc.BadPointerOperation();     // issue 45 , line 222 : cause many errors
-    }                                // issue 46 , line 223 : finished else is recommended for else-if sequence
+        sc.BadPointerOperation();     // issue 46 , line 244 : cause many errors
+    }                                // issue 47 , line 245 : finished else is recommended for else-if sequence
 
 JUMP:
     
     string s("Some string");
-    sc.PassStringAsValue(s);         // issue 47 , line 228 : uncorrect string sending
+    sc.PassStringAsValue(s);         // issue 48 , line 250 : uncorrect string sending
 
-    cout << "=== Happy end of the program :) number of issues inside is about 48 :) ===" << endl;
+    cout << "=== Happy end of the program :) number of issues inside is about 49 :) ===" << endl;
 
     return 0;
 }

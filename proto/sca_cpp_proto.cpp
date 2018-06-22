@@ -120,7 +120,6 @@ private:
 }; // issue {autonum} , line {line} : no user-provided copy constructor, no user-provided copy assignment operator
 
 
-
 class SimplyCreazy
 {
 public:
@@ -162,10 +161,49 @@ private:
 	char *pNonIni;
 };
 
+enum class Color {red, green, blue, magenta, yellow };
+
+void switchBreak(Color cl)
+{
+    cout << "Lost break example begin" << endl;
+    switch(cl)
+    {
+        case Color::red :
+            cout << "Color::red" << endl;
+            break;
+        case Color::green : 
+            cout << "Color::green. Ops! break is forgotten" << endl; // issue {autonum} , line {line} : missing break in the switch/case            
+        case Color::blue : 
+            cout << "Color::blue" << endl;
+        case Color::magenta :
+            [[gnu::fallthrow]]
+        case Color::yellow :
+            cout << "Color::yellow or Color::magenta" << endl;
+    }
+    cout << "Lost break example end" << endl;
+}
+
+void lambdaIssues()
+{
+    int32_t a = 5;
+    int32_t b = 10;
+    int32_t d = 11;
+    auto f = [&]() -> int32_t // issue {autonum} , line {line} : opening capturing by ref
+        {
+            int a = -3; // issue {autonum} , line {line} : hides a from upper scope
+            d = 20;     // issue {autonum} , line {line} : changing d from upper scope
+            return a+b;
+        };
+    int32_t r = f();
+    cout << "LambdaRet = " << r << ", d is changed: " << d << endl;
+}
 
 int32_t  main (int32_t argc, const char* const argv[] ) 
 {
     cout << "=== Happy start of the program :) ===" << endl;
+    
+    switchBreak(Color::green);
+    lambdaIssues();
 
     int64_t crashCode = 0;
     if ( argc > 1 )
